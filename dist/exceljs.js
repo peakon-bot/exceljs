@@ -1576,8 +1576,8 @@ module.exports = {
     Xlsx: 1
   },
   ReadingOrder: {
-    RightToLeft: 1,
-    LeftToRight: 2
+    LeftToRight: 1,
+    RightToLeft: 2
   },
   ErrorValue: {
     NotApplicable: '#N/A',
@@ -4061,7 +4061,7 @@ var utils = module.exports = {
   },
   xmlEncode: function xmlEncode(text) {
     // eslint-disable-next-line no-control-regex
-    return text.replace(/[<>&'"\x7F\x00-\x08\x0A-\x0C\x0E-\x1F]/g, function (c) {
+    return text.replace(/[<>&'"\x7F\x00-\x08\x0B-\x0C\x0E-\x1F]/g, function (c) {
       switch (c) {
         case '<':
           return '&lt;';
@@ -5017,7 +5017,7 @@ utils.inherits(WorkbookXform, BaseXform, {
       case 'workbook':
         this.model = {
           sheets: this.map.sheets.model,
-          properties: this.map.workbookPr.model,
+          properties: this.map.workbookPr.model || {},
           views: this.map.bookViews.model
         };
         if (this.map.definedNames.model) {
@@ -7916,6 +7916,7 @@ utils.inherits(SheetViewXform, BaseXform, {
         xmlStream.addAttribute(name, value);
       }
     };
+    add('rightToLeft', '1', model.rightToLeft === true);
     add('tabSelected', '1', model.tabSelected);
     add('showRuler', '0', model.showRuler === false);
     add('showRowColHeaders', '0', model.showRowColHeaders === false);
@@ -7980,6 +7981,7 @@ utils.inherits(SheetViewXform, BaseXform, {
       case 'sheetView':
         this.sheetView = {
           workbookViewId: parseInt(node.attributes.workbookViewId, 10),
+          rightToLeft: node.attributes.rightToLeft === '1',
           tabSelected: node.attributes.tabSelected === '1',
           showRuler: !(node.attributes.showRuler === '0'),
           showRowColHeaders: !(node.attributes.showRowColHeaders === '0'),
@@ -8019,6 +8021,7 @@ utils.inherits(SheetViewXform, BaseXform, {
         if (this.sheetView && this.pane) {
           model = this.model = {
             workbookViewId: this.sheetView.workbookViewId,
+            rightToLeft: this.sheetView.rightToLeft,
             state: VIEW_STATES[this.pane.state] || 'split', // split is default
             xSplit: this.pane.xSplit,
             ySplit: this.pane.ySplit,
@@ -8042,6 +8045,7 @@ utils.inherits(SheetViewXform, BaseXform, {
         } else {
           model = this.model = {
             workbookViewId: this.sheetView.workbookViewId,
+            rightToLeft: this.sheetView.rightToLeft,
             state: 'normal',
             showRuler: this.sheetView.showRuler,
             showRowColHeaders: this.sheetView.showRowColHeaders,
@@ -9223,12 +9227,15 @@ var validation = {
     value = utils.validInt(value);
     return Math.max(0, value);
   },
-  readingOrderValues: [{ k: 'r2l', v: 1 }, { k: 'l2r', v: 2 }, { k: Enums.ReadingOrder.RightToLeft, v: 1 }, { k: Enums.ReadingOrder.LeftToRight, v: 2 }].reduce(function (p, v) {
-    p[v.k] = v.v;return p;
-  }, {}),
-
   readingOrder: function readingOrder(value) {
-    return this.readingOrderValues[value];
+    switch (value) {
+      case 'ltr':
+        return Enums.ReadingOrder.LeftToRight;
+      case 'rtl':
+        return Enums.ReadingOrder.RightToLeft;
+      default:
+        return undefined;
+    }
   }
 };
 
@@ -9321,7 +9328,7 @@ utils.inherits(AlignmentXform, BaseXform, {
     add(node.attributes.shrinkToFit, 'shrinkToFit', !!node.attributes.shrinkToFit);
     add(node.attributes.indent, 'indent', parseInt(node.attributes.indent, 10));
     add(node.attributes.textRotation, 'textRotation', textRotationXform.toModel(node.attributes.textRotation));
-    add(node.attributes.readingOrder, 'readingOrder', node.attributes.readingOrder);
+    add(node.attributes.readingOrder, 'readingOrder', node.attributes.readingOrder === '2' ? 'rtl' : 'ltr');
 
     this.model = valid ? model : null;
   },
