@@ -17,7 +17,7 @@ var CSV = require('./../csv/csv');
 //  Manage String table, Hyperlink table, etc.
 //  Manage scaffolding for contained objects to write to/read from
 
-var Workbook = module.exports = function () {
+var Workbook = module.exports = function (maxRows) {
   this.created = new Date();
   this.modified = this.created;
   this.properties = {};
@@ -25,11 +25,12 @@ var Workbook = module.exports = function () {
   this.views = [];
   this.media = [];
   this._definedNames = new DefinedNames();
+  this.maxRows = maxRows;
 };
 
 Workbook.prototype = {
   get xlsx() {
-    return this._xlsx || (this._xlsx = new XLSX(this));
+    return this._xlsx || (this._xlsx = new XLSX(this, this.maxRows));
   },
   get csv() {
     return this._csv || (this._csv = new CSV(this));
