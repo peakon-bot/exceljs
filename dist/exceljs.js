@@ -8140,7 +8140,6 @@ var PictureXform = require('./picture-xform');
 var DrawingXform = require('./drawing-xform');
 
 var WorkSheetXform = module.exports = function (maxRows) {
-  console.log('new WorkSheetXorm', maxRows);
   this.map = {
     sheetPr: new SheetPropertiesXform(),
     dimension: new DimensionXform(),
