@@ -5046,7 +5046,7 @@ utils.inherits(WorkbookXform, BaseXform, {
   },
 
   reconcile: function reconcile(model) {
-    var rels = model.workbookRels.reduce(function (map, rel) {
+    var rels = (model.workbookRels || []).reduce(function (map, rel) {
       map[rel.Id] = rel;
       return map;
     }, {});
@@ -5056,7 +5056,7 @@ utils.inherits(WorkbookXform, BaseXform, {
     var worksheet;
     var index = 0;
 
-    model.sheets.forEach(function (sheet) {
+    (model.sheets || []).forEach(function (sheet) {
       var rel = rels[sheet.rId];
       if (!rel) {
         return;
@@ -10856,7 +10856,7 @@ XLSX.prototype = {
       sharedStrings: model.sharedStrings,
       media: model.media,
       mediaIndex: model.mediaIndex,
-      date1904: model.properties.date1904,
+      date1904: model.properties && model.properties.date1904,
       drawings: model.drawings
     };
     model.worksheets.forEach(function (worksheet) {
