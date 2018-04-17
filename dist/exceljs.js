@@ -2138,13 +2138,30 @@ Row.prototype = {
       throw new Error('Invalid row number in model');
     }
     this._cells = [];
+    var previousAddress;
     value.cells.forEach(function (cellModel) {
       switch (cellModel.type) {
         case Cell.Types.Merge:
           // special case - don't add this types
           break;
         default:
-          var cell = _this2.getCellEx(colCache.decodeAddress(cellModel.address));
+          var address;
+          if (cellModel.address) {
+            address = colCache.decodeAddress(cellModel.address);
+          } else if (previousAddress) {
+            // This is a <c> element without an r attribute
+            // Assume that it's the cell for the next column
+            var row = previousAddress.row;
+            var col = previousAddress.col + 1;
+            address = {
+              row: row,
+              col: col,
+              address: colCache.encodeAddress(row, col),
+              $col$row: '$' + colCache.n2l(col) + '$' + row
+            };
+          }
+          previousAddress = address;
+          var cell = _this2.getCellEx(address);
           cell.model = cellModel;
           break;
       }
@@ -5405,6 +5422,7 @@ var CoreXform = module.exports = function () {
     'cp:revision': new DateXform({ tag: 'cp:revision' }),
     'cp:version': new StringXform({ tag: 'cp:version' }),
     'cp:contentStatus': new StringXform({ tag: 'cp:contentStatus' }),
+    'cp:contentType': new StringXform({ tag: 'cp:contentType' }),
     'dcterms:created': new DateXform({ tag: 'dcterms:created', attrs: CoreXform.DateAttrs, format: CoreXform.DateFormat }),
     'dcterms:modified': new DateXform({ tag: 'dcterms:modified', attrs: CoreXform.DateAttrs, format: CoreXform.DateFormat })
   };
@@ -5442,6 +5460,7 @@ utils.inherits(CoreXform, BaseXform, {
     this.map['cp:revision'].render(xmlStream, model.revision);
     this.map['cp:version'].render(xmlStream, model.version);
     this.map['cp:contentStatus'].render(xmlStream, model.contentStatus);
+    this.map['cp:contentType'].render(xmlStream, model.contentType);
     this.map['dcterms:created'].render(xmlStream, model.created);
     this.map['dcterms:modified'].render(xmlStream, model.modified);
 
@@ -5492,6 +5511,7 @@ utils.inherits(CoreXform, BaseXform, {
           lastPrinted: this.map['cp:lastPrinted'].model,
           revision: this.map['cp:revision'].model,
           contentStatus: this.map['cp:contentStatus'].model,
+          contentType: this.map['cp:contentType'].model,
           created: this.map['dcterms:created'].model,
           modified: this.map['dcterms:modified'].model
         };
