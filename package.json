@@ -98,7 +98,7 @@
     "semver": "*",
     "uglifyjs": "^2.4.10"
   },
-  "main": "./dist/es5/index.js",
+  "main": "./lib/exceljs.nodejs.js",
   "types": "./index.d.ts",
   "files": [
     "dist",
