@@ -100,7 +100,7 @@
   "main": "./lib/exceljs.nodejs.js",
   "types": "./index.d.ts",
   "files": [
-    "dist",
+    "lib",
     "LICENSE",
     "README.md",
     "index.d.ts"
