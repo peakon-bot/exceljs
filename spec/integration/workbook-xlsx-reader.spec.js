@@ -172,4 +172,33 @@ describe('WorkbookReader', function() {
       expect(cell.value).to.equal('_x000D_');
     });
   });
+
+  describe('with a spreadsheet that has an XML parse error in a worksheet', function () {
+    it('should reject the promise with the sax error', function () {
+      let unhandledRejection;
+      function unhandledRejectionHandler(err) {
+        unhandledRejection = err;
+      }
+      process.on('unhandledRejection', unhandledRejectionHandler);
+      const workbook = new Excel.Workbook();
+      return workbook.xlsx
+        .readFile('./spec/integration/data/invalid-xml.xlsx')
+        .then(
+          () => {
+            throw new Error('Promise unexpectedly fulfilled');
+          },
+          err => {
+            expect(err.message).to.equal('Text data outside of root node.\nLine: 1\nColumn: 1\nChar: f');
+            // Wait a tick before checking for an unhandled rejection
+            return new Promise(setImmediate);
+          }
+        )
+        .then(() => {
+          expect(unhandledRejection).to.be.undefined;
+        })
+        .finally(() => {
+          process.removeListener('unhandledRejection', unhandledRejectionHandler);
+        });
+    });
+  });
 });
